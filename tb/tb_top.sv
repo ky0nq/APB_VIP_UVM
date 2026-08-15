@@ -1,74 +1,39 @@
-`timescale 1ns/1ps
+import uvm_pkg::*;
+import apb_pkg::*;
 
 module tb_top;
-
-	import uvm_pkg::*;
-
-	`include "uvm_macros.svh"
-
 
 	logic PCLK;
 	logic PRESETn;
 
+	// clock generate
+	initial PCLK = 0;
+	always #5 PCLK = ~PCLK;
 
-	// -----------------------------------------
-	// Interface
-	// -----------------------------------------
+	// interface instance
 	apb_if apb_vif (
 		.PCLK    (PCLK),
 		.PRESETn (PRESETn)
 	);
 
+	// =============================
+	// dut place
+	// =============================
 
-	// -----------------------------------------
-	// Clock
-	// 100 MHz
-	// -----------------------------------------
 	initial begin
-
-		PCLK = 1'b0;
-
-		forever begin
-			#5 PCLK = ~PCLK;
-		end
-
-	end
-
-
-	// -----------------------------------------
-	// Reset
-	// -----------------------------------------
-	initial begin
-
 		PRESETn = 1'b0;
-
-		repeat(5) begin
-			@(posedge PCLK);
-		end
-
+		repeat(5) @(posedge PCLK);
 		PRESETn = 1'b1;
-
 	end
 
-
-	// -----------------------------------------
-	// UVM
-	// -----------------------------------------
 	initial begin
-
-		uvm_config_db#(virtual apb_if)::set(
-			null,
-			"*",
-			"apb_vif",
-			apb_vif
-		);
-
+		uvm_config_db#(virtual apb_if)::set(null, "*", "apb_vif", apb_vif);
 		run_test("apb_test");
-
 	end
 
 	initial begin
 		$fsdbDumpfile("wave.fsdb");
-		$fsdbDumpvars(0, tb_top);
+		$fsdbDumpvars(0);
+		$fsdbDumpMDA();
 	end
 endmodule
