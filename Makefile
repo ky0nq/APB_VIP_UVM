@@ -14,7 +14,7 @@
 #   make clean
 # ============================================================
 
-TEST        ?= apb_test
+TEST        ?= apb_basic_test
 VERBOSITY   ?= UVM_MEDIUM
 TOP         ?= tb_top
 
@@ -24,7 +24,7 @@ TB_DIR      := tb
 SIMV        := simv
 COMPILE_LOG := compile.log
 RUN_LOG     := sim.log
-WAVE_FILE   := wave.vpd
+WAVE_FILE   := wave.fsdb
 
 # ------------------------------------------------------------
 # Source files
@@ -90,7 +90,7 @@ run: sim
 # Requires tb_top.sv to generate wave.vpd
 # ============================================================
 wave: run
-	dve -vpd $(WAVE_FILE) &
+	verdi -ssf $(WAVE_FILE) &
 
 # ============================================================
 # Clean generated files
