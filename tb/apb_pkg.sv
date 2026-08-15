@@ -1,54 +1,40 @@
+`include "uvm_macros.svh"
 package apb_pkg;
 
 	import uvm_pkg::*;
-	`include "uvm_macros.svh"
 
-	// ----------------------------------------------------
-	// Transaction
-	// ----------------------------------------------------
+	// transaction
 	`include "apb_seq_item.sv"
 
-	// ----------------------------------------------------
-	// Sequencers
-	// ----------------------------------------------------
+	// sequencer 
 	`include "apb_master_sqr.sv"
 	`include "apb_slave_sqr.sv"
 	`include "apb_sequencer.sv"
 
-	// ----------------------------------------------------
-	// Sequences
-	// ----------------------------------------------------
+	// sequence
 	`include "apb_master_sequence.sv"
 	`include "apb_slave_sequence.sv"
 	`include "apb_sequence.sv"
 
-	// ----------------------------------------------------
-	// Drivers
-	// ----------------------------------------------------
+	// driver
 	`include "apb_master_driver.sv"
 	`include "apb_slave_driver.sv"
 
-	// ----------------------------------------------------
-	// Monitors
-	// ----------------------------------------------------
+	// monitor
 	`include "apb_master_monitor.sv"
 	`include "apb_slave_monitor.sv"
 
-	// ----------------------------------------------------
-	// Agents
-	// ----------------------------------------------------
+	// agent
 	`include "apb_master_agent.sv"
 	`include "apb_slave_agent.sv"
-
-	// ----------------------------------------------------
-	// Scoreboard
-	// ----------------------------------------------------
+	
+	// scoreboard
 	`include "apb_scoreboard.sv"
 
-	// ----------------------------------------------------
-	// Environment / Test
-	// ----------------------------------------------------
+	// environment 
 	`include "apb_env.sv"
+
+	// test
 	`include "apb_test.sv"
 
 endpackage
