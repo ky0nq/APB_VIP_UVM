@@ -29,19 +29,24 @@ class apb_master_drv extends uvm_driver #(apb_seq_item);
         apb_vif.master_cb.PSTRB   <= 4'b0;
         apb_vif.master_cb.PPROT   <= 3'b0;
 
+		wait (apb_vif.PRESETn === 1'b1);
 		seq_item_port.get_next_item(c_item);
-
+		
 		@(apb_vif.master_cb);
 
 		// SETUP State
 		apb_vif.master_cb.PADDR 	<= c_item.PADDR;
-		apb_vif.master_cb.PWDATA 	<= c_item.PWDATA;
+		if(c_item.PWRITE == 1'b0) begin
+			apb_vif.master_cb.PWDATA 	<= c_item.PWDATA;
+		end
+		else begin
+			apb_vif.master_cb.PWDATA	<= 32'b0;
+		end
 		apb_vif.master_cb.PWRITE 	<= c_item.PWRITE;
 		apb_vif.master_cb.PSTRB 	<= c_item.PSTRB;
 		apb_vif.master_cb.PPROT   	<= c_item.PPROT;
         apb_vif.master_cb.PSEL    	<= 1'b1;
         apb_vif.master_cb.PENABLE 	<= 1'b0;
-
 		`uvm_info(get_type_name(), $sformatf("SETUP: PADDR=%08h PWRITE=%0b PWDATA=%08h", c_item.PADDR, c_item.PWRITE, c_item.PWDATA), UVM_HIGH)
 		
 		forever begin
@@ -54,6 +59,8 @@ class apb_master_drv extends uvm_driver #(apb_seq_item);
 			do begin
 				@(apb_vif.master_cb);
 			end while (apb_vif.master_cb.PREADY !== 1'b1);
+
+			n_item = null;
 
 			c_item.PREADY 	= apb_vif.master_cb.PREADY;
 			c_item.PSLVERR 	= apb_vif.master_cb.PSLVERR;
