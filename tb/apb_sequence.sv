@@ -36,8 +36,8 @@ class apb_base_seq extends uvm_sequence;
 			slave_seq.item 	= slave_item;		
 			
 			fork
-				master_seq.start(p_sequencer.apb_master_sqr);
-				slave_seq.start(p_sequencer.apb_slave_sqr);
+				master_seq.start(p_sequencer.master_sqr);
+				slave_seq.start(p_sequencer.slave_sqr);
 			join
 		end
 	endtask		
