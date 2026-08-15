@@ -1,4 +1,10 @@
 class apb_seq_item extends uvm_sequence_item;
+	typedef enum {
+		APB_NORMAL,
+		APB_PENABLE_ONLY
+	} apb_scenario_e;
+	apb_scenario_e scenario = APB_NORMAL;
+
 	rand bit [31:0] PADDR;
 	rand bit [31:0] PWDATA;
 	rand bit PWRITE;
@@ -30,6 +36,7 @@ class apb_seq_item extends uvm_sequence_item;
 	}
 	
 	`uvm_object_utils_begin(apb_seq_item)
+		`uvm_field_enum(apb_scenario_e, scenario, UVM_ALL_ON)
 		`uvm_field_int(PADDR,UVM_ALL_ON)
 		`uvm_field_int(PWDATA,UVM_ALL_ON)
 		`uvm_field_int(PWRITE,UVM_ALL_ON)
