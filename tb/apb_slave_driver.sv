@@ -23,6 +23,8 @@ class apb_slave_drv extends uvm_driver #(apb_seq_item);
 		apb_vif.slave_cb.PRDATA  <= 32'b0;
 		apb_vif.slave_cb.PREADY  <= 1'b0;
 		apb_vif.slave_cb.PSLVERR <= 1'b0;
+		
+		wait (apb_vif.PRESETn === 1'b1);
 
 		forever begin
 			//IDLE State
@@ -51,26 +53,34 @@ class apb_slave_drv extends uvm_driver #(apb_seq_item);
 			if (!std::randomize(waiting_ready) with {waiting_ready inside {[0:5]};}) begin
 				`uvm_fatal(get_type_name(), "Ready Assign Cycle Randomization Failed!")
 			end
-			
-			// Master PSEL & PENABLE signal waiting
-			do begin
-				@(apb_vif.slave_cb);
-			end while (!(apb_vif.slave_cb.PSEL == 1'b1 && apb_vif.slave_cb.PENABLE == 1'b1));
-
-			repeat (waiting_ready) begin
+			// waiting not exists. already setting.
+			if (waiting_ready == 0) begin
+				apb_vif.slave_cb.PREADY <= 1'b1;
+				// Master PSEL & PENABLE signal waiting
+				do begin
+					@(apb_vif.slave_cb);
+				end while (!(apb_vif.slave_cb.PSEL == 1'b1 && apb_vif.slave_cb.PENABLE == 1'b1));
+			end
+			else begin
 				apb_vif.slave_cb.PREADY <= 1'b0;
+				// Master PSEL & PENABLE signal waiting
+				do begin
+					@(apb_vif.slave_cb);
+				end while (!(apb_vif.slave_cb.PSEL == 1'b1 && apb_vif.slave_cb.PENABLE == 1'b1));
+			
+				repeat (waiting_ready-1) begin	
+					@(apb_vif.slave_cb);
+				end
+				apb_vif.slave_cb.PREADY  <= 1'b1;
 				@(apb_vif.slave_cb);
 			end
-			apb_vif.slave_cb.PREADY 	<= 1'b1;
-			apb_vif.slave_cb.PSLVERR <= item.PSLVERR;
-
+			
 			`uvm_info(get_type_name(), $sformatf("Execution : %s", item.convert2string()), UVM_HIGH)
-			@(apb_vif.slave_cb);
 			seq_item_port.item_done();
 
-			apb_vif.slave_cb.PREADY  <= 1'b0;
 			apb_vif.slave_cb.PSLVERR <= 1'b0;
 			apb_vif.slave_cb.PRDATA  <= 32'b0;
+			apb_vif.slave_cb.PREADY  <= 1'b0;
 		end	
 	endtask
 
