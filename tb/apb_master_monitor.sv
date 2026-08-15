@@ -16,42 +16,47 @@ class apb_master_mon extends uvm_monitor;
 		end
 	endfunction
 
-	task run_phase(uvm_phase phase);
+	virtual task run_phase(uvm_phase phase);
 		apb_seq_item item;
 		
 		forever begin
+
+			@(apb_vif.monitor_cb);
+
+			// PRESETn Deassertion check
+			if (apb_vif.PRESETn != 1'b1)
+				continue;
+
 			// Waiting SETUP State
-			do begin
-				@(apb_vif.monitor_cb);
-			end while (!(apb_vif.monitor_cb.PSEL == 1'b1 && apb_vif.monitor_cb.PENABLE == 1'b0));
+			if (apb_vif.monitor_cb.PSEL == 1'b1 && apb_vif.monitor_cb.PENABLE == 1'b0) begin
+				item = apb_seq_item::type_id::create("item");
 
-			item = apb_seq_item::type_id::create("item");
+				// Master Request Saving
+				item.PADDR 	= apb_vif.monitor_cb.PADDR;
+				item.PWDATA = apb_vif.monitor_cb.PWDATA;
+				item.PWRITE = apb_vif.monitor_cb.PWRITE;
+				item.PSTRB  = apb_vif.monitor_cb.PSTRB;
+				item.PPROT  = apb_vif.monitor_cb.PPROT;
+				`uvm_info(get_type_name(), $sformatf("Master SETUP : PADDR=%08h PWRITE=%0b PWDATA=%08h", item.PADDR, item.PWRITE, item.PWDATA), UVM_HIGH)
 
-			// Master Request Saving
-			item.PADDR 	= apb_vif.monitor_cb.PADDR;
-			item.PWDATA = apb_vif.monitor_cb.PWDATA;
-			item.PWRITE = apb_vif.monitor_cb.PWRITE;
-			item.PSTRB  = apb_vif.monitor_cb.PSTRB;
-			item.PPROT  = apb_vif.monitor_cb.PPROT;
-			`uvm_info(get_type_name(), $sformatf("Master SETUP : PADDR=%08h PWRITE=%0b PWDATA=%08h", item.PADDR, item.PWRITE, item.PWDATA), UVM_HIGH)
+				// Wait ACCESS State
+				do begin 
+					@(apb_vif.monitor_cb);
+				end while (!(apb_vif.monitor_cb.PSEL == 1'b1 && apb_vif.monitor_cb.PENABLE == 1'b1 &&
+							apb_vif.monitor_cb.PREADY == 1'b1));
 
-			// Wait ACCESS State
-			do begin 
-				@(apb_vif.monitor_cb);
-			end while (!(apb_vif.monitor_cb.PSEL == 1'b1 && apb_vif.monitor_cb.PENABLE == 1'b1 &&
-						apb_vif.monitor_cb.PREADY == 1'b1));
+				// Slave Response Saving
+				item.PREADY  = apb_vif.monitor_cb.PREADY;
+				item.PSLVERR = apb_vif.monitor_cb.PSLVERR;
 
-			// Slave Response Saving
-			item.PREADY  = apb_vif.monitor_cb.PREADY;
-			item.PSLVERR = apb_vif.monitor_cb.PSLVERR;
-
-			if (item.PWRITE == 1'b0) begin
-				item.PRDATA = apb_vif.monitor_cb.PRDATA;
+				if (item.PWRITE == 1'b0) begin
+					item.PRDATA = apb_vif.monitor_cb.PRDATA;
+				end
+				
+				`uvm_info(get_type_name(), $sformatf("Master Transaction Completed! : %s", item.convert2string()), UVM_HIGH)
+				
+				master_ap.write(item);
 			end
-			
-			`uvm_info(get_type_name(), $sformatf("Master Transaction Completed! : %s", item.convert2string()), UVM_HIGH)
-			
-			master_ap.write(item);
 		end
 	endtask
 endclass
