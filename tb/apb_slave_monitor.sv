@@ -20,35 +20,44 @@ class apb_slave_mon extends uvm_monitor;
 		apb_seq_item item;
 
 		forever begin		
-			// Waiting ACCESS State
-			do begin 
-				@(apb_vif.monitor_cb);
-			end while (!(apb_vif.monitor_cb.PSEL == 1'b1 && apb_vif.monitor_cb.PENABLE == 1'b1 &&
-							apb_vif.monitor_cb.PREADY == 1'b1));
-			item = apb_seq_item::type_id::create("item");	
+			@(apb_vif.monitor_cb);
 			
-			// Master Request Saving
-			item.PADDR  = apb_vif.monitor_cb.PADDR;
-			item.PWDATA = apb_vif.monitor_cb.PWDATA;
-			item.PWRITE = apb_vif.monitor_cb.PWRITE;
-			item.PSTRB  = apb_vif.monitor_cb.PSTRB;
-			item.PPROT  = apb_vif.monitor_cb.PPROT;
+			if (apb_vif.PRESETn !== 1'b1)
+				continue;
 
-			// Slave Response Saving
-			item.PREADY  = apb_vif.monitor_cb.PREADY;
-			item.PSLVERR = apb_vif.monitor_cb.PSLVERR;
-
-			if (item.PWRITE == 1'b0) begin
-				item.PRDATA = apb_vif.monitor_cb.PRDATA; 	// Read Operation
-			end
-			else begin
-				item.PRDATA = 32'b0;
-			end
+			if (apb_vif.monitor_cb.PSEL == 1'b1 && apb_vif.monitor_cb.PENABLE == 1'b0) begin
+				item = apb_seq_item::type_id::create("item");
 			
-			`uvm_info(get_type_name(), $sformatf("SLAVE MONITOR: PADDR=%08h PWRITE=%0b PRDATA=%08h PREADY=%0b PSLVERR=%0b", 
-							item.PADDR, item.PWRITE, item.PRDATA, item.PREADY, item.PSLVERR), UVM_HIGH)
+				// Master Request Saving
+				item.PADDR  = apb_vif.monitor_cb.PADDR;
+				item.PWDATA = apb_vif.monitor_cb.PWDATA;
+				item.PWRITE = apb_vif.monitor_cb.PWRITE;
+				item.PSTRB  = apb_vif.monitor_cb.PSTRB;
+				item.PPROT  = apb_vif.monitor_cb.PPROT;
 
-			slave_ap.write(item);
+				// Waiting ACCESS State
+				do begin
+					@(apb_vif.monitor_cb);
+				end while (!(apb_vif.monitor_cb.PSEL    === 1'b1 &&
+							apb_vif.monitor_cb.PENABLE === 1'b1 &&
+							apb_vif.monitor_cb.PREADY  === 1'b1));
+
+				// Slave Response Saving
+				item.PREADY  = apb_vif.monitor_cb.PREADY;
+				item.PSLVERR = apb_vif.monitor_cb.PSLVERR;
+
+				if (item.PWRITE == 1'b0) begin
+					item.PRDATA = apb_vif.monitor_cb.PRDATA; 	// Read Operation
+				end
+				else begin
+					item.PRDATA = 32'b0;
+				end
+
+				`uvm_info(get_type_name(), $sformatf("SLAVE MONITOR: PADDR=%08h PWRITE=%0b PRDATA=%08h PREADY=%0b PSLVERR=%0b", 
+								item.PADDR, item.PWRITE, item.PRDATA, item.PREADY, item.PSLVERR), UVM_HIGH)
+
+				slave_ap.write(item);
+			end
 		end
 	endtask
 
