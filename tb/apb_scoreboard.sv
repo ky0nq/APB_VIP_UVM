@@ -51,27 +51,25 @@ class apb_scoreboard extends uvm_scoreboard;
 	function void compare_item();
 		apb_seq_item master_item;
 		apb_seq_item slave_item;
-		// 양쪽 transaction이 모두 들어왔을 때만 비교
+
 		if (master_q.size() > 0 && slave_q.size() > 0) begin
 			master_item = master_q.pop_front();
 			slave_item  = slave_q.pop_front();
-			// -----------------------------------------
-			// Read / Write Count
-			// -----------------------------------------
+
+			// write / read count
 			if (master_item.PWRITE == 1'b1)
 				write_cnt++;
 			else
 				read_cnt++;
-			// -----------------------------------------
-			// 기본 Request 비교
-			// -----------------------------------------
+			
+			// master to slave signal check
 			if (
 				master_item.PADDR  === slave_item.PADDR  &&
 				master_item.PWRITE === slave_item.PWRITE &&
 				master_item.PSTRB  === slave_item.PSTRB  &&
 				master_item.PPROT  === slave_item.PPROT
 			) begin
-				// WRITE transaction
+				// WRITE transaction Data & signal check
 				if (master_item.PWRITE == 1'b1) begin
 					if (
 						master_item.PWDATA  === slave_item.PWDATA  &&
@@ -79,29 +77,15 @@ class apb_scoreboard extends uvm_scoreboard;
 						master_item.PSLVERR === slave_item.PSLVERR
 					) begin
 						pass_cnt++;
-						`uvm_info(
-							get_type_name(),
-							$sformatf(
-								"WRITE PASS : ADDR=%08h DATA=%08h",
-								master_item.PADDR,
-								master_item.PWDATA
-							),
-							UVM_LOW
-						)
+						`uvm_info(get_type_name(), $sformatf("WRITE PASS : ADDR=%08h DATA=%08h", master_item.PADDR, master_item.PWDATA), UVM_LOW)
 					end
 					else begin
 						fail_cnt++;
-						`uvm_error(
-							get_type_name(),
-							$sformatf(
-								"WRITE FAIL : MASTER=%s SLAVE=%s",
-								master_item.convert2string(),
-								slave_item.convert2string()
-							)
-						)
+						`uvm_error(get_type_name(),
+							$sformatf("WRITE FAIL : MASTER=%s SLAVE=%s", master_item.convert2string(), slave_item.convert2string()))
 					end
 				end
-				// READ transaction
+				// READ transaction Data & signal check
 				else begin
 					if (
 						master_item.PRDATA  === slave_item.PRDATA  &&
@@ -109,55 +93,46 @@ class apb_scoreboard extends uvm_scoreboard;
 						master_item.PSLVERR === slave_item.PSLVERR
 					) begin
 						pass_cnt++;
-						`uvm_info(
-							get_type_name(),
-							$sformatf(
-								"READ PASS : ADDR=%08h DATA=%08h",
-								master_item.PADDR,
-								master_item.PRDATA
-							),
-							UVM_LOW
-						)
+						`uvm_info(get_type_name(),
+							$sformatf("READ PASS : ADDR=%08h DATA=%08h", master_item.PADDR, master_item.PRDATA), UVM_LOW)
 					end
 					else begin
 						fail_cnt++;
-						`uvm_error(
-							get_type_name(),
-							$sformatf(
-								"READ FAIL : MASTER=%s SLAVE=%s",
-								master_item.convert2string(),
-								slave_item.convert2string()
-							)
-						)
+						`uvm_error(get_type_name(),
+							$sformatf("READ FAIL : MASTER=%s SLAVE=%s", master_item.convert2string(), slave_item.convert2string()))
 					end
 				end
 			end
 			else begin
 				fail_cnt++;
-				`uvm_error(
-					get_type_name(),
-					$sformatf(
-						"REQUEST FAIL : MASTER=%s SLAVE=%s",
-						master_item.convert2string(),
-						slave_item.convert2string()
-					)
-				)
+				`uvm_error(get_type_name(),
+					$sformatf("REQUEST FAIL : MASTER=%s SLAVE=%s", master_item.convert2string(), slave_item.convert2string()))
 			end
 		end
 	endfunction
 	
 	function void report_phase(uvm_phase phase);
 		super.report_phase(phase);
-		`uvm_info(
-			get_type_name(),
+
+		`uvm_info(get_type_name(),
 			$sformatf(
-				"\n====================================\n\
-					APB SCOREBOARD RESULT\n\
-					Write Count : %0d\n\
-					Read Count  : %0d\n\
-					Pass Count  : %0d\n\
-					Fail Count  : %0d\n\
-					====================================", write_cnt, read_cnt, pass_cnt, fail_cnt), UVM_NONE)
+				{"\n",
+				"========================================\n",
+				"         APB SCOREBOARD RESULT\n",
+				"========================================\n",
+				"    Write Count : %0d\n",
+				"    Read Count  : %0d\n",
+				"    Pass Count  : %0d\n",
+				"    Fail Count  : %0d\n",
+				"========================================"},
+				write_cnt,
+				read_cnt,
+				pass_cnt,
+				fail_cnt
+			),
+			UVM_LOW
+		)
+
 	endfunction
 
 endclass
