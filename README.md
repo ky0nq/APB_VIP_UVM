@@ -68,27 +68,7 @@ Transfer Complete
 
 ## UVM Architecture
 
-```text
-                         apb_test
-                            │
-                         apb_env
-                            │
-        ┌───────────────────┼───────────────────┐
-        │                   │                   │
- apb_master_agent      apb_slave_agent      apb_sequencer
-        │                   │
-   ┌────┼────┐         ┌────┼────┐
-   │    │    │         │    │    │
- SQR  Driver Monitor   SQR Driver Monitor
-        │                   │
-        └───────── apb_if ──┘
-                    │
-         ┌──────────┼──────────┐
-         │          │          │
-      Monitor    Assertion   Coverage
-         │
-         └────── Scoreboard
-```
+<img width="3776" height="3112" alt="image" src="https://github.com/user-attachments/assets/d8e199cd-2283-436d-9cfb-3c1c0e12ab22" />
 
 ### Verification Flow
 
