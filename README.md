@@ -1,7 +1,5 @@
 # APB_VIP_UVM
 
-# APB VIP UVM
-
 SystemVerilog/UVM 기반으로 구현한 **AMBA APB Verification IP(VIP)** 프로젝트입니다.
 
 APB Master/Slave Agent를 구성하여 Read/Write Transaction을 생성하고,  
