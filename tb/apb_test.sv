@@ -35,7 +35,7 @@ class apb_basic_test extends apb_base_test;
 		seq = apb_base_seq::type_id::create("seq");
 		if (!seq.randomize())
 			`uvm_error("TEST", "Seq Randomize Fail!!");
-		seq.num = 20;
+		seq.num = 100;
 		seq.start(env.apb_sqr);
 
 		#100; // delay for stable state

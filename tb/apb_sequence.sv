@@ -8,38 +8,96 @@ class apb_base_seq extends uvm_sequence;
 		super.new(name);
 	endfunction
 
-	virtual	task body();
-		apb_seq_item 		top_item;
-		apb_seq_item        master_item;
-        apb_seq_item        slave_item;
+	// virtual	task body();
+	// 	apb_seq_item 		top_item;
+	// 	apb_seq_item        master_item;
+    //  apb_seq_item        slave_item;
+
+	// 	apb_master_seq 	master_seq;
+	// 	apb_slave_seq 	slave_seq;
+		
+	// 	`uvm_info(get_type_name(), $sformatf("Random Scenario Start (%0d repeat)", num), UVM_LOW)
+
+	// 	repeat(num) begin
+	// 		top_item = apb_seq_item::type_id::create("top_item");
+	// 		master_item = apb_seq_item::type_id::create("master_item");
+	// 		slave_item = apb_seq_item::type_id::create("slave_item");
+
+	// 		if (!top_item.randomize()) begin
+	// 			`uvm_fatal(get_type_name(), $sformatf("Item Randomization Failed!"))
+	// 		end		
+	
+	// 		master_seq 	= apb_master_seq::type_id::create("apb_master_seq");
+	// 		slave_seq 	= apb_slave_seq::type_id::create("apb_slave_seq");
+
+	// 		master_item.copy(top_item);
+    //      slave_item.copy(top_item);
+	// 		master_seq.item = master_item;
+	// 		slave_seq.item 	= slave_item;		
+			
+	// 		fork
+	// 			master_seq.start(p_sequencer.master_sqr);
+	// 			slave_seq.start(p_sequencer.slave_sqr);
+	// 		join
+	// 	end
+	// endtask		
+
+	virtual task body();
+		apb_seq_item 	 top_item;
+		apb_seq_item      master_item;
+		apb_seq_item      slave_item;
 
 		apb_master_seq 	master_seq;
 		apb_slave_seq 	slave_seq;
-		
-		`uvm_info(get_type_name(), $sformatf("Random Scenario Start (%0d repeat)", num), UVM_LOW)
 
-		repeat(num) begin
-			top_item = apb_seq_item::type_id::create("top_item");
+		int unsigned i;
+		
+		`uvm_info(
+			get_type_name(),
+			$sformatf("Random Scenario Start (%0d repeat)", num),
+			UVM_LOW
+		)
+
+		for (i = 0; i < num; i++) begin
+			top_item    = apb_seq_item::type_id::create("top_item");
 			master_item = apb_seq_item::type_id::create("master_item");
-			slave_item = apb_seq_item::type_id::create("slave_item");
+			slave_item  = apb_seq_item::type_id::create("slave_item");
 
 			if (!top_item.randomize()) begin
-				`uvm_fatal(get_type_name(), $sformatf("Item Randomization Failed!"))
-			end		
-	
-			master_seq 	= apb_master_seq::type_id::create("apb_master_seq");
-			slave_seq 	= apb_slave_seq::type_id::create("apb_slave_seq");
+				`uvm_fatal(get_type_name(), "Item Randomization Failed!")
+			end
+
+			// NORMAL → NORMAL → PENABLE_ONLY → NORMAL → PSEL_DROP
+			if ((i % 5) == 2)
+				top_item.scenario = apb_seq_item::APB_PENABLE_ONLY;
+			else if ((i % 5) == 4)
+				top_item.scenario = apb_seq_item::APB_PSEL_DROP;
+			else
+				top_item.scenario = apb_seq_item::APB_NORMAL;
+
+			master_seq = apb_master_seq::type_id::create("apb_master_seq");
+			slave_seq  = apb_slave_seq::type_id::create("apb_slave_seq");
 
 			master_item.copy(top_item);
-            slave_item.copy(top_item);
+			slave_item.copy(top_item);
+
 			master_seq.item = master_item;
-			slave_seq.item 	= slave_item;		
-			
-			fork
+			slave_seq.item  = slave_item;
+
+			// Scenario Execution
+			if (top_item.scenario == apb_seq_item::APB_PENABLE_ONLY) begin
+				// PENABLE_ONLY : Only Master
 				master_seq.start(p_sequencer.master_sqr);
-				slave_seq.start(p_sequencer.slave_sqr);
-			join
+			end
+			else begin
+				// NORMAL, PSEL_DROP : Master + Slave
+				fork
+					master_seq.start(p_sequencer.master_sqr);
+					slave_seq.start(p_sequencer.slave_sqr);
+				join
+			end
+
 		end
-	endtask		
+	endtask
 
 endclass

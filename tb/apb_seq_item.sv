@@ -1,7 +1,8 @@
 class apb_seq_item extends uvm_sequence_item;
 	typedef enum {
 		APB_NORMAL,
-		APB_PENABLE_ONLY
+		APB_PENABLE_ONLY,
+		APB_PSEL_DROP
 	} apb_scenario_e;
 	apb_scenario_e scenario = APB_NORMAL;
 

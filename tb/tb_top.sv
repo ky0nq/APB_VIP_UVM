@@ -11,9 +11,17 @@ module tb_top;
 	always #5 PCLK = ~PCLK;
 
 	// interface instance
-	apb_if apb_vif (
+	apb_if U_APB_VIF (
 		.PCLK    (PCLK),
 		.PRESETn (PRESETn)
+	);
+
+	apb_assertions U_APB_ASSERTIONS (
+		.PCLK    (PCLK),
+		.PRESETn (PRESETn),
+		.PSEL    (U_APB_VIF.PSEL),
+		.PENABLE (U_APB_VIF.PENABLE),
+		.PREADY  (U_APB_VIF.PREADY)
 	);
 
 	// =============================
@@ -27,7 +35,7 @@ module tb_top;
 	end
 
 	initial begin
-		uvm_config_db#(virtual apb_if)::set(null, "*", "apb_vif", apb_vif);
+		uvm_config_db#(virtual apb_if)::set(null, "*", "apb_vif", U_APB_VIF);
 		run_test("apb_test");
 	end
 

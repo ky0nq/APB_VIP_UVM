@@ -27,6 +27,9 @@ package apb_pkg;
 	// agent
 	`include "apb_master_agent.sv"
 	`include "apb_slave_agent.sv"
+
+	// coverage
+	`include "apb_coverage.sv"
 	
 	// scoreboard
 	`include "apb_scoreboard.sv"
