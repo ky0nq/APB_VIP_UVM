@@ -23,29 +23,29 @@ Monitor, Scoreboard, Assertion, Functional Coverage를 통해 APB Interface의 �
 
 APB VIP는 단순히 신호를 발생시키는 Driver뿐 아니라, Transaction 생성부터 Monitor, Scoreboard, Assertion, Coverage까지 포함하는 재사용 가능한 검증 환경으로 구성했습니다.
 
+| 항목 | 내용 |
+|---|---|
+| 형태 | 개인 프로젝트 |
+| 검증 | UVM 1.1d · SVA · Functional Coverage |
+| 도구 | Synopsys VCS W-2024.09-SP2 · Verdi · urg |
+| 관련 프로젝트 | [AXI4-Lite → APB Bridge UVM 검증](https://github.com/ky0nq/AXI4-Lite-to-APB_Bridge_UVM) |
+
+## 핵심 결과
+
+- Master / Slave Agent를 **Virtual Sequencer**로 묶어 하나의 Transaction을 Master · Slave Item으로 복사해 동시 구동 (Race Condition 방지)
+- Slave Driver에서 **PREADY 0~5 cycle 랜덤 지연** · `PSLVERR` 응답, Back-to-Back 비율 70%
+- `apb_basic_test`: Write 23 · Read 37, **Scoreboard PASS 60 / FAIL 0**, UVM_ERROR 0
+- Functional Coverage(covergroup) **95.00%** · Negative Scenario Cover Property **2 / 2 Hit**
+
 ---
 
 ## APB Protocol
 
 APB Transfer의 기본 흐름은 다음과 같습니다.
 
-```text
-IDLE
-  ↓
-SETUP
-PSEL    = 1
-PENABLE = 0
-  ↓
-ACCESS
-PSEL    = 1
-PENABLE = 1
-  ↓
-PREADY = 1
-  ↓
-Transfer Complete
-```
-
-`PREADY=0`이면 ACCESS 상태가 유지되며, Transfer가 완료될 때까지 Master Request Signal은 유지되어야 합니다.
+<p align="center">
+  <img src="docs/apb_state_diagram.png" alt="APB State Diagram (IDLE → SETUP → ACCESS)" width="420">
+</p>
 
 ### APB Signals
 
@@ -449,19 +449,6 @@ Negative Scenario는 정상 Transaction Monitor를 통해 수집되지 않을 �
 | `PENABLE_ONLY` | Negative | `PSEL=0`, `PENABLE=1` 상태 생성 |
 | `PSEL_DROP` | Negative | ACCESS Wait 중 `PSEL` Drop |
 
-### Planned Scenarios
-
-| Scenario | Description |
-|---|---|
-| `PENABLE_DROP` | ACCESS Wait 중 `PENABLE` Drop |
-| `ADDR_CHANGE_WAIT` | Wait 중 `PADDR` 변경 |
-| `WDATA_CHANGE_WAIT` | Write Wait 중 `PWDATA` 변경 |
-| `CONTROL_CHANGE_WAIT` | Wait 중 `PWRITE`, `PSTRB`, `PPROT` 변경 |
-| `SETUP_NO_ACCESS` | SETUP 이후 ACCESS 미진입 |
-| `LONG_WAIT` | 장시간 Wait State 검증 |
-| `INVALID_ADDR` | Invalid Address 기반 `PSLVERR` 검증 |
-| `PSTRB_PATTERN` | Byte Strobe 동작 검증 |
-
 ---
 
 ## Simulation Environment
@@ -567,27 +554,10 @@ Cover Property
 
 ---
 
-## Future Work
-
-- PENABLE Drop Scenario
-- ACCESS Wait Signal Stability Assertion
-- Invalid Address 기반 PSLVERR Response
-- Read-Only Register Write Error
-- PSTRB Byte Write Functional Verification
-- Coverage 확장
-- Reference Model 추가
-- 실제 APB Slave DUT 연동
-
----
-
 ## References
 
 - ARM AMBA APB Protocol Specification
 - Universal Verification Methodology (UVM)
-
-### Project Documentation
-
-https://app.notion.com/p/APB-UVM-3b26de42f5798096935fe78326737027
 
 ### Repository
 
