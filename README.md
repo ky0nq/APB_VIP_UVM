@@ -25,6 +25,7 @@ APB VIP는 단순히 신호를 발생시키는 Driver뿐 아니라, Transaction 
 
 | 항목 | 내용 |
 |---|---|
+| 기간 | 2026.08.13 ~ 2026.08.24 |
 | 형태 | 개인 프로젝트 |
 | 검증 | UVM 1.1d · SVA · Functional Coverage |
 | 도구 | Synopsys VCS W-2024.09-SP2 · Verdi · urg |
@@ -448,6 +449,22 @@ Negative Scenario는 정상 Transaction Monitor를 통해 수집되지 않을 �
 | `BACK_TO_BACK` | Normal | IDLE 없이 연속 Transaction 처리 |
 | `PENABLE_ONLY` | Negative | `PSEL=0`, `PENABLE=1` 상태 생성 |
 | `PSEL_DROP` | Negative | ACCESS Wait 중 `PSEL` Drop |
+
+---
+
+## Simulation Results
+
+### Waveform
+
+<img src="docs/apb_waveform.png" alt="APB Waveform (Verdi)" width="100%">
+
+### Coverage
+
+<img src="docs/apb_coverage.png" alt="Coverage Report" width="100%">
+
+### Assertion
+
+<img src="docs/apb_assertion.png" alt="Assertion Report" width="100%">
 
 ---
 
